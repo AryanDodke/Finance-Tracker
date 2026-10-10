@@ -218,3 +218,66 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# --- Custom Additions ---
+
+# General
+.DS_Store
+*.log
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Backend (FastAPI)
+Backend/.venv/
+Backend/*.db
+Backend/app/data/*.db
+Backend/.pytest_cache/
+Backend/.coverage
+Backend/.env
+!Backend/.env.example
+Backend/uploads/
+
+# Frontend (Node/React/Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.eslintcache
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# AI / Agents
+.agents/scratch/
