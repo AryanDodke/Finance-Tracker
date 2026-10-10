@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getSummary } from '../api';
-import { TrendingUp, AlertTriangle, RefreshCw } from 'lucide-react';
+import { TrendingUp, AlertTriangle, RefreshCw, Wallet, ClipboardList } from 'lucide-react';
 import { CustomFace } from '../components/CustomFaces';
 import { 
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer, 
@@ -8,6 +8,22 @@ import {
 } from 'recharts';
 
 const COLORS = ['#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#3b82f6'];
+
+const CustomPieTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="glass-panel" style={{ padding: '0.75rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <div className="flex items-center gap-2 font-medium">
+          <CustomFace name={data.category_icon || 'face-unknown'} className="w-4 h-4 text-accent-primary" />
+          {data.category_name}
+        </div>
+        <div className="text-lg font-bold">₹{data.total.toFixed(2)}</div>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function Dashboard() {
   const [period, setPeriod] = useState('2025-06');
@@ -41,27 +57,33 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-3 gap-6">
-        <div className="glass-card flex-col gap-2">
-          <h3 className="text-secondary text-sm uppercase tracking-wider">Total Spend</h3>
+        <div className="glass-card flex-col gap-2 transition-transform hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/10 cursor-default">
+          <h3 className="flex items-center gap-2 text-secondary text-sm uppercase tracking-wider">
+            <Wallet size={16} /> Total Spend
+          </h3>
           <h2>₹{totalSpend.toFixed(2)}</h2>
           {data.savings_rate !== null && (
             <p className="text-success text-sm">Savings rate: {data.savings_rate.toFixed(1)}%</p>
           )}
         </div>
         
-        <div className="glass-card flex-col gap-2">
-          <h3 className="text-secondary text-sm uppercase tracking-wider">Top Category</h3>
+        <div className="glass-card flex-col gap-2 transition-transform hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/10 cursor-default">
+          <h3 className="flex items-center gap-2 text-secondary text-sm uppercase tracking-wider">
+            <TrendingUp size={16} /> Top Category
+          </h3>
           <h2 className="flex items-center">
             {data.category_totals[0]?.category_icon && (
-              <CustomFace name={data.category_totals[0].category_icon} className="mr-2 w-8 h-8" />
+              <CustomFace name={data.category_totals[0].category_icon} className="mr-2 w-8 h-8 text-accent-primary" />
             )}
             {data.category_totals[0]?.category_name || '-'}
           </h2>
           <p className="text-sm">₹{data.category_totals[0]?.total.toFixed(2) || '0.00'}</p>
         </div>
 
-        <div className="glass-card flex-col gap-2">
-          <h3 className="text-secondary text-sm uppercase tracking-wider">Pending Reviews</h3>
+        <div className="glass-card flex-col gap-2 transition-transform hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/10 cursor-default">
+          <h3 className="flex items-center gap-2 text-secondary text-sm uppercase tracking-wider">
+            <ClipboardList size={16} /> Pending Reviews
+          </h3>
           <h2>{data.review_count}</h2>
           <p className="text-sm">Action required to improve accuracy</p>
         </div>
@@ -70,51 +92,56 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 gap-8">
         <div className="glass-panel" style={{ padding: '2rem' }}>
           <h3>Category Breakdown</h3>
-          <div style={{ height: '300px', marginTop: '1rem' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={data.category_totals}
-                  dataKey="total"
-                  nameKey="category_name"
-                  cx="50%" cy="50%"
-                  outerRadius={100} innerRadius={60}
-                  stroke="none"
-                >
-                  {data.category_totals.map((entry: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  formatter={(value: number) => `₹${value.toFixed(2)}`}
-                  contentStyle={{ background: '#0f1115', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+          <div style={{ height: '300px', marginTop: '1rem' }} className="flex items-center justify-center">
+            {data.category_totals.length === 0 ? (
+              <p className="text-secondary">No spending data for this period.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={data.category_totals}
+                    dataKey="total"
+                    nameKey="category_name"
+                    cx="50%" cy="50%"
+                    outerRadius={100} innerRadius={60}
+                    stroke="none"
+                  >
+                    {data.category_totals.map((entry: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomPieTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
         <div className="glass-panel" style={{ padding: '2rem' }}>
           <h3>Top Merchants</h3>
-          <div style={{ height: '300px', marginTop: '1rem' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.top_merchants.slice(0, 5)} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
-                <XAxis type="number" hide />
-                <YAxis dataKey="merchant_name" type="category" width={100} axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.6)'}} />
-                <Tooltip 
-                  formatter={(value: number) => `₹${value.toFixed(2)}`}
-                  contentStyle={{ background: '#0f1115', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                />
-                <Bar dataKey="total" fill="url(#colorGradient)" radius={[0, 4, 4, 0]} barSize={20} />
-                <defs>
-                  <linearGradient id="colorGradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#6366f1" />
-                    <stop offset="100%" stopColor="#a855f7" />
-                  </linearGradient>
-                </defs>
-              </BarChart>
-            </ResponsiveContainer>
+          <div style={{ height: '300px', marginTop: '1rem' }} className="flex items-center justify-center">
+            {data.top_merchants.length === 0 ? (
+              <p className="text-secondary">No merchants found for this period.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data.top_merchants.slice(0, 5)} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                  <XAxis type="number" hide />
+                  <YAxis dataKey="merchant_name" type="category" width={100} axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.6)'}} />
+                  <Tooltip 
+                    formatter={(value: number) => `₹${value.toFixed(2)}`}
+                    contentStyle={{ background: '#0f1115', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                  />
+                  <Bar dataKey="total" fill="url(#colorGradient)" radius={[0, 4, 4, 0]} barSize={20} />
+                  <defs>
+                    <linearGradient id="colorGradient" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#6366f1" />
+                      <stop offset="100%" stopColor="#a855f7" />
+                    </linearGradient>
+                  </defs>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>
